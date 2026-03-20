@@ -10,7 +10,6 @@
     "dotenv": "^16.0.0",
     "node-telegram-bot-api": "^0.61.0",
     "openai": "^6.27.0",
-    "puppeteer": "^21.0.0",
     "sqlite3": "^5.1.0"
   }
 }
