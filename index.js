@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const threadsService = require('./services/threads');
 const youtubeService = require('./services/youtube');
 const storage = require('./services/storage');
@@ -175,4 +176,10 @@ process.on('uncaughtException', (err) => {
     console.error('💥 [CRITICAL] Uncaught Exception:', err);
 });
 
-missionControl();
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 [CRITICAL] Unhandled Promise Rejection:', reason);
+});
+
+missionControl().catch((err) => {
+    console.error('💥 [CRITICAL] missionControl crashed:', err);
+});

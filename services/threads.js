@@ -32,7 +32,14 @@ class ThreadsService {
             if (process.env.CHROME_PATH) {
                 launchOptions.executablePath = process.env.CHROME_PATH;
             }
-            this.browser = await puppeteer.launch(launchOptions);
+            try {
+                this.browser = await puppeteer.launch(launchOptions);
+                console.log('[Threads] Browser launched successfully.');
+            } catch (err) {
+                console.error('[Threads] Failed to launch browser:', err.message);
+                this.browser = null;
+                throw err; // performPatrol의 try/catch로 전파
+            }
         }
     }
 
