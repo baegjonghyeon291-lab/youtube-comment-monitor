@@ -14,15 +14,24 @@ class YoutubeService {
 
     async init() {
         if (!this.browser) {
-            this.browser = await puppeteer.launch({
-                executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-                headless: 'new',
+            const launchOptions = {
+                headless: true,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
-                    '--disable-blink-features=AutomationControlled'
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-blink-features=AutomationControlled',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process'
                 ]
-            });
+            };
+            // 로컬 Mac 환경: CHROME_PATH 환경변수가 있으면 해당 경로 사용
+            if (process.env.CHROME_PATH) {
+                launchOptions.executablePath = process.env.CHROME_PATH;
+            }
+            this.browser = await puppeteer.launch(launchOptions);
         }
     }
 
