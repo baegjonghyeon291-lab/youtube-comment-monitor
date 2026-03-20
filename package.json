@@ -1,0 +1,16 @@
+{
+  "name": "threads-cyber-guardian",
+  "version": "1.0.0",
+  "description": "Specialized cyber-monitoring tool for Threads/Instagram malicious activity.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "node-telegram-bot-api": "^0.61.0",
+    "openai": "^6.27.0",
+    "puppeteer": "^21.0.0",
+    "sqlite3": "^5.1.0"
+  }
+}

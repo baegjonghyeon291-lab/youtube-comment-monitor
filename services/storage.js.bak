@@ -1,0 +1,49 @@
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * gyeongsu-cyber-guardian logic: Simple session storage for de-duplication.
+ */
+class IncidentLog {
+    constructor(filePath = 'incident_logs.json') {
+        this.filePath = path.join(process.cwd(), filePath);
+        this.processedIds = new Set();
+        this.load();
+    }
+
+    load() {
+        if (fs.existsSync(this.filePath)) {
+            try {
+                const data = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+                this.processedIds = new Set(data);
+                console.log(`[Storage] Incident logs loaded. Total entries: ${this.processedIds.size}`);
+            } catch (err) {
+                console.error('[Storage] Error reading incident logs:', err.message);
+                this.processedIds = new Set();
+            }
+        }
+    }
+
+    save() {
+        try {
+            fs.writeFileSync(this.filePath, JSON.stringify(Array.from(this.processedIds), null, 2));
+        } catch (err) {
+            console.error('[Storage] Error saving incident logs:', err.message);
+        }
+    }
+
+    isProcessed(id) {
+        return this.processedIds.has(id);
+    }
+
+    markAsProcessed(id) {
+        if (!this.processedIds.has(id)) {
+            this.processedIds.add(id);
+            this.save();
+            return true;
+        }
+        return false;
+    }
+}
+
+module.exports = new IncidentLog();

@@ -1,0 +1,89 @@
+require('dotenv').config();
+const threadsService = require('./services/threads');
+const storage = require('./services/storage');
+const telegram = require('./services/telegram');
+
+/**
+ * gyeongsu-cyber-guardian logic: Mission Control.
+ */
+async function missionControl() {
+    console.log('\n🛡️  [Mission Control: Cyber Guardian] Active.');
+    console.log('────────────────────────────────────────────');
+    
+    // Initialize AI Assistant Polling (Single Instance)
+    telegram.initPolling();
+
+    // 🕵️ Status Report: Initial Check-in
+    const startupReport = `[IMAGE: https://raw.githubusercontent.com/wonseokjung/solopreneur-ai-agents/main/agents/gyeongsu/assets/gyeongsu_hello.png]\n대표님, 사이버수사대 경수 요원 현장 순찰 업무 착수 보고드립니다. 현재 Threads 전담 수사망을 가동하였으며, 이상 징후 포착 시 즉시 보고하겠습니다.`;
+    await telegram._sendGyeongsuReport(process.env.TELEGRAM_CHAT_ID, startupReport);
+    console.log('[Telegram] Startup check-in transmitted.');
+
+    // Target Identification
+    const maliciousAccounts = (process.env.THREADS_MALICIOUS_ACCOUNTS || '').split(',').map(acc => acc.trim());
+    const primaryTarget = maliciousAccounts[0]; // Phase 1: Focus on the primary target subject
+
+    if (!primaryTarget) {
+        console.error('[Mission] Error: No malicious account identified for monitoring. Check .env');
+        process.exit(1);
+    }
+
+    const intervalMin = parseInt(process.env.POLL_INTERVAL_MINUTES) || 120;
+    const intervalDisplay = intervalMin >= 60 ? `${intervalMin / 60} hour(s)` : `${intervalMin} minute(s)`;
+    
+    console.log(`🕵️ Targeting Subject: @${primaryTarget}`);
+    console.log(`⏱️  Poll Interval: ${intervalDisplay}`);
+    console.log('────────────────────────────────────────────\n');
+
+    const patrol = async () => {
+        try {
+            console.log(`[${new Date().toLocaleTimeString()}] 🔍 Scanning for new activities by @${primaryTarget}...`);
+            
+            const results = [];
+            // Sector 1: Subject's Primary Broadcasts (Posts)
+            const posts = await threadsService.patrolProfile(primaryTarget, 'post');
+            results.push(...posts);
+
+            // Sector 2: Subject's Interactions (Replies)
+            const replies = await threadsService.patrolProfile(primaryTarget, 'reply');
+            results.push(...replies);
+
+            console.log(`[Mission] Scan complete. Found ${results.length} activity items.`);
+
+            for (const incident of results) {
+                // [SPEED-FIRST MODE] Deduplication Disabled Temporarily
+                console.log(`🚨 [DANGER] MATCH IDENTIFIED: ${incident.type} by @${incident.author}`);
+                
+                // Evidence is already saved in threadsService.patrolProfile if screenshotPath exists
+                if (incident.screenshotPath) {
+                    console.log(`📸 EVIDENCE SAVED: ${incident.screenshotPath}`);
+                }
+
+                console.log(`📡 TELEGRAM SEND START: @${incident.author} (${incident.type})`);
+                try {
+                    await telegram.sendIncidentReport(incident);
+                    console.log(`✅ TELEGRAM SEND SUCCESS: @${incident.author}`);
+                } catch (sendErr) {
+                    console.error(`❌ TELEGRAM SEND FAILURE: @${incident.author}. Error: ${sendErr.message}`);
+                }
+            }
+
+
+        } catch (err) {
+            console.error('[Mission] Patrol failed due to operational error:', err.message);
+        }
+    };
+
+    // Initial Strike
+    await patrol();
+
+    // Continuous Persistence Loop
+    const intervalMs = (parseInt(process.env.POLL_INTERVAL_MINUTES) || 1) * 60 * 1000;
+    setInterval(patrol, intervalMs);
+}
+
+// Global Exception Handler
+process.on('uncaughtException', (err) => {
+    console.error('💥 [CRITICAL FALLOUT] Uncaught Exception:', err);
+});
+
+missionControl();
