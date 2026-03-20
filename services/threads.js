@@ -17,21 +17,18 @@ class ThreadsService {
         if (!this.browser) {
             const launchOptions = {
                 headless: true,
+                // Railway(Linux) 컨테이너 필수 옵션
+                executablePath: process.env.CHROME_PATH || puppeteer.executablePath(),
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
-                    '--disable-blink-features=AutomationControlled',
                     '--no-first-run',
                     '--no-zygote',
-                    '--single-process'
+                    '--disable-blink-features=AutomationControlled'
                 ]
             };
-            // 로컬 Mac 환경: CHROME_PATH 환경변수가 있으면 해당 경로 사용
-            if (process.env.CHROME_PATH) {
-                launchOptions.executablePath = process.env.CHROME_PATH;
-            }
             try {
                 this.browser = await puppeteer.launch(launchOptions);
                 console.log('[Threads] Browser launched successfully.');
