@@ -23,10 +23,7 @@ class ThreadsService {
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-blink-features=AutomationControlled'
+                    '--disable-gpu'
                 ]
             };
             try {
