@@ -3,9 +3,20 @@ require('dotenv').config();
 
 class OpenAIService {
     constructor() {
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
+        // Lazy init: OPENAI_API_KEY가 없어도 모듈 로딩 시 crash하지 않음
+        this.openai = null;
+    }
+
+    _getClient() {
+        if (!this.openai) {
+            if (!process.env.OPENAI_API_KEY) {
+                throw new Error('OPENAI_API_KEY environment variable is not set.');
+            }
+            this.openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY
+            });
+        }
+        return this.openai;
     }
 
     /**
@@ -29,7 +40,7 @@ class OpenAIService {
 - 수사 목표: 악성 사용자의 신규 게시물 및 답글 실시간 추적 및 증거 확보
 `.trim();
 
-            const response = await this.openai.chat.completions.create({
+            const response = await this._getClient().chat.completions.create({
                 model: 'gpt-4o',
                 messages: [
                     {
